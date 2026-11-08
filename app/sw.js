@@ -1,6 +1,6 @@
 /* Service worker: makes the app open fast and work as an installed app.
    MP3 files are NOT cached here — they stream straight from dhammadownload.com. */
-const VERSION = "tny-v2";
+const VERSION = "tny-v3";
 const SHELL = ["./", "index.html", "style.css", "app.js", "manifest.webmanifest", "data/index.json",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 

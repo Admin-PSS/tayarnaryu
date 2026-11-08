@@ -224,7 +224,69 @@ function viewHome() {
 
 function credit() {
   return `<p class="credit">အသံဖိုင်များကို <a href="${esc(CAT.source)}" target="_blank" rel="noopener">dhammadownload.com</a> မှ
-    ခွင့်ပြုချက်ဖြင့် တိုက်ရိုက်ဖွင့်ပါသည်။<br>တရားစာရင်း ${fmtDate(CAT.generated)} ထိ</p>`;
+    ခွင့်ပြုချက်ဖြင့် တိုက်ရိုက်ဖွင့်ပါသည်။<br>တရားစာရင်း ${fmtDate(CAT.generated)} ထိ · <a href="#/about">ⓘ App အကြောင်း</a></p>`;
+}
+
+function viewAbout() {
+  setHeader("App အကြောင်း", "#/"); setTab("library");
+  const cnt = sectionCounts();
+  const teachersN = (cnt.sayadaw || 0) + (cnt.lay || 0);
+  const site = "https://www.dhammadownload.com/";
+  return `<div class="about">
+    <div class="about-hero">
+      <img src="icons/icon-192.png" alt="" width="84" height="84">
+      <h2>တရားနာယူ</h2>
+      <p class="muted">ဓမ္မဒေါင်းလုပ်မှ တရားတော်များကို အွန်လိုင်းမှ တိုက်ရိုက် နာယူနိုင်ရန်</p>
+    </div>
+
+    <div class="card about-card">
+      <h3>🙏 ကျေးဇူးတင်လွှာ</h3>
+      <p>ဤ App ရှိ တရားတော် အသံဖိုင်အားလုံးကို
+        <a href="${site}" target="_blank" rel="noopener">ဓမ္မဒေါင်းလုပ် (dhammadownload.com)</a> မှ
+        စေတနာဖြင့် အခမဲ့ မျှဝေထားခြင်း ဖြစ်ပါသည်။</p>
+      <p>တရားဒါန ပြုတော်မူကြသော ဆရာတော်ဘုရားများ၊ ဆရာကြီးများနှင့်
+        ဓမ္မဒေါင်းလုပ် အဖွဲ့ဝင်များ အားလုံးကို ကျေးဇူးအထူး တင်ရှိပါသည်။</p>
+    </div>
+
+    <div class="card about-card">
+      <h3>📜 ခွင့်ပြုချက်</h3>
+      <p class="small muted">ဓမ္မဒေါင်းလုပ် ပင်မစာမျက်နှာတွင် ဖော်ပြထားသော “ကြိုတင်ခွင့်ပြုချက်” –</p>
+      <blockquote>ဓမ္မဒေါင်းလုပ် website ကို InternetTraffic နိုင်အောင် 1Gbps Internet Bandwidth, Dedicated Server with SSD
+        Hardisk array များဖြင့်, စီစဉ်ထားပါသည်။ ယ္ခု ဓမ္မဒေါင်းလုပ် website မှ တရားတော်များ၏ URL Link များကို
+        မိမိတို့၏ ကိုယ်ပိုင် website မှ တိုက်ရိုက် ပြန်လည် Link လုပ်၍ အသုံးပြုလိုပါက ခွင့်ပြူပါကြောင်း အသိပေးအပ်ပါသည်။</blockquote>
+      <p class="small"><a href="${site}index.htm" target="_blank" rel="noopener">ပင်မစာမျက်နှာတွင် ကြည့်ရန် ›</a></p>
+    </div>
+
+    <div class="card about-card">
+      <h3>ℹ App အလုပ်လုပ်ပုံ</h3>
+      <ul>
+        <li>တရားတော်များကို ဓမ္မဒေါင်းလုပ် ဆာဗာမှ <b>တိုက်ရိုက်</b> ဖွင့်ပါသည်။ အသံဖိုင်များကို ကူးယူ သိမ်းဆည်းထားခြင်း မရှိပါ။</li>
+        <li>တရားစာရင်းကို ဓမ္မဒေါင်းလုပ်မှ <b>အပတ်စဉ်</b> အလိုအလျောက် ပြန်လည်စစ်ဆေးပါသည်။</li>
+        <li>ကြော်ငြာ မရှိပါ။ အကောင့်ဖွင့်ရန် မလိုပါ။ အခမဲ့ ဖြစ်ပါသည်။</li>
+        <li>နာခဲ့သော မှတ်တမ်း၊ နှစ်သက်ရာ နှင့် ဆက်နာရန် နေရာများကို <b>သင့်ဖုန်းထဲတွင်သာ</b> သိမ်းပါသည်။
+          ကိုယ်ရေးအချက်အလက် မည်သည့်အရာကိုမျှ စုဆောင်းခြင်း မရှိပါ။</li>
+      </ul>
+    </div>
+
+    <div class="card about-card about-stats">
+      <div><b>${mm(teachersN)}</b><span>ဆရာတော်/ဆရာကြီး</span></div>
+      <div><b>${mm(CAT.total)}</b><span>တရားတော်</span></div>
+      <div><b>${fmtDate(CAT.generated)}</b><span>စာရင်း နောက်ဆုံးစစ်</span></div>
+    </div>
+
+    <div class="card about-card">
+      <h3>🤝 ဓမ္မဒေါင်းလုပ်ကို ထောက်ပံ့ရန်</h3>
+      <p>ဓမ္မဒေါင်းလုပ်သည် ဆာဗာ၊ အင်တာနက် စရိတ်များကို အလှူရှင်များ၏ စေတနာဖြင့် ရပ်တည်နေပါသည်။</p>
+      <p><a class="btn" href="${site}Contribute-to-dhammadownload.htm" target="_blank" rel="noopener">ကူညီလှူဒါန်းရန် ›</a></p>
+      <p class="small muted">ဓမ္မဒေါင်းလုပ်၏ ကိုယ်ပိုင် App –
+        <a href="https://play.google.com/store/apps/details?id=com.dhammadownload.dhammadownloadandroid" target="_blank" rel="noopener">Android</a> ·
+        <a href="https://itunes.apple.com/us/app/dhamma-download/id1148319071" target="_blank" rel="noopener">iPhone</a></p>
+    </div>
+
+    <p class="credit">ဤ App သည် ဓမ္မဒေါင်းလုပ်၏ တရားဝင် App မဟုတ်ပါ။ ဓမ္မဒေါင်းလုပ်၏ ခွင့်ပြုချက်ဖြင့်
+      တရားနာယူသူများ အဆင်ပြေစေရန် စေတနာဖြင့် ပြုလုပ်ထားခြင်း ဖြစ်ပါသည်။<br><br>
+      သာဓု သာဓု သာဓု 🙏</p>
+  </div>`;
 }
 
 const collator = (() => { try { return new Intl.Collator("my"); } catch { return new Intl.Collator(); } })();
@@ -334,7 +396,7 @@ function runSearch(q) {
 
 function viewLibrary(tab = "favs") {
   setHeader("ကိုယ်ပိုင်"); setTab("library");
-  const tabs = [["favs", "⭐ နှစ်သက်ရာ"], ["recent", "🕘 နာခဲ့သော"], ["settings", "⚙ ဆက်တင်"]];
+  const tabs = [["favs", "⭐ နှစ်သက်ရာ"], ["recent", "🕘 နာခဲ့သော"], ["settings", "⚙ ဆက်တင်"], ["about", "ⓘ အကြောင်း"]];
   let h = `<div class="seg">${tabs.map(([k, l]) => `<button data-act="libtab" data-tab="${k}" class="${k === tab ? "on" : ""}">${l}</button>`).join("")}</div>`;
   if (tab === "favs") h += talkList(favs, true);
   else if (tab === "recent") h += talkList(recent, true) + (recent.length ? `<p style="text-align:center"><button class="btn ghost" data-act="clearrecent">မှတ်တမ်း ရှင်းရန်</button></p>` : "");
@@ -373,6 +435,7 @@ async function route() {
     else if (a === "search") html = viewSearch();
     else if (a === "library") html = viewLibrary(b);
     else if (a === "new") html = viewNew();
+    else if (a === "about") html = viewAbout();
     else html = viewNotFound();
   } catch {
     html = errorBox();
@@ -661,7 +724,7 @@ document.addEventListener("click", ev => {
       break;
     }
     case "fav": toggleFav(id); refreshRows(); renderPlayerInfo(); break;
-    case "libtab": location.hash = "#/library/" + el.dataset.tab; break;
+    case "libtab": location.hash = el.dataset.tab === "about" ? "#/about" : "#/library/" + el.dataset.tab; break;
     case "section": teacherFilter = ""; location.hash = "#/sayadaws/" + el.dataset.sec; break;
     case "sort":
       settings.sort = settings.sort === "abc" ? "site" : "abc"; saveSettings();
