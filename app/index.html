@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>တရားနာယူ</title>
+<meta name="description" content="ဓမ္မဒေါင်းလုပ်မှ တရားတော်များကို အွန်လိုင်းမှ တိုက်ရိုက်နာယူနိုင်သော App">
+<meta name="theme-color" content="#8b4513">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="တရားနာယူ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <button id="backBtn" class="icon-btn" aria-label="နောက်သို့" hidden>‹</button>
+  <h1 id="viewTitle">တရားနာယူ</h1>
+</header>
+
+<main id="view" aria-live="polite"><p class="loading">တရားစာရင်း ဖွင့်နေသည်…</p></main>
+
+<!-- mini player -->
+<div id="mini" class="mini" hidden>
+  <div class="mini-bar"><i id="miniProg"></i></div>
+  <button id="miniOpen" class="mini-info" aria-label="Player ဖွင့်ရန်">
+    <span id="miniTitle" class="mini-title"></span>
+    <span id="miniSub" class="mini-sub"></span>
+  </button>
+  <button id="miniPlay" class="icon-btn big" aria-label="ဖွင့်/ရပ်">▶</button>
+  <button id="miniNext" class="icon-btn" aria-label="နောက်တရား">⏭</button>
+</div>
+
+<nav class="tabs" aria-label="Main">
+  <a href="#/" data-tab="home"><span>🏠</span>ပင်မ</a>
+  <a href="#/sayadaws" data-tab="sayadaws"><span>🙏</span>ဆရာတော်များ</a>
+  <a href="#/search" data-tab="search"><span>🔍</span>ရှာဖွေ</a>
+  <a href="#/library" data-tab="library"><span>📚</span>ကိုယ်ပိုင်</a>
+</nav>
+
+<!-- full player -->
+<section id="player" class="player" hidden aria-label="Now playing">
+  <div class="player-top">
+    <button id="playerClose" class="icon-btn" aria-label="ပိတ်ရန်">˅</button>
+    <span class="player-label">နာကြားနေသည်</span>
+    <a id="dlLink" class="icon-btn" href="#" download target="_blank" rel="noopener" aria-label="ဒေါင်းလုဒ်">⬇</a>
+  </div>
+  <div class="player-art"><img src="icons/icon-512.png" alt=""></div>
+  <h2 id="pTitle"></h2>
+  <p id="pSub" class="muted"></p>
+  <p id="pGroup" class="muted small"></p>
+  <div class="seek-row">
+    <span id="pCur" class="time">၀:၀၀</span>
+    <input id="pSeek" type="range" min="0" max="1000" value="0" aria-label="Seek">
+    <span id="pDur" class="time">--:--</span>
+  </div>
+  <div class="ctrl-row">
+    <button id="pPrev" class="icon-btn" aria-label="ယခင်တရား">⏮</button>
+    <button id="pBack" class="icon-btn" aria-label="၁၅ စက္ကန့် နောက်ဆုတ်">↺<small>၁၅</small></button>
+    <button id="pPlay" class="play-btn" aria-label="ဖွင့်/ရပ်">▶</button>
+    <button id="pFwd" class="icon-btn" aria-label="၁၅ စက္ကန့် ရှေ့တိုး">↻<small>၁၅</small></button>
+    <button id="pNext" class="icon-btn" aria-label="နောက်တရား">⏭</button>
+  </div>
+  <div class="opt-row">
+    <button id="pRate" class="chip">၁×</button>
+    <button id="pSleep" class="chip">😴 <span id="pSleepTxt">အိပ်ချိန်</span></button>
+    <button id="pFav" class="chip" aria-label="နှစ်သက်ရာ">☆</button>
+    <button id="pQueueBtn" class="chip">☰ နောက်ထပ်</button>
+  </div>
+  <p id="pStatus" class="status small"></p>
+  <div id="pQueue" class="queue" hidden></div>
+</section>
+
+<!-- sleep timer sheet -->
+<div id="sleepSheet" class="sheet" hidden>
+  <div class="sheet-box">
+    <h3>😴 အိပ်ချိန်မှတ်</h3>
+    <button data-sleep="15">၁၅ မိနစ်</button>
+    <button data-sleep="30">၃၀ မိနစ်</button>
+    <button data-sleep="45">၄၅ မိနစ်</button>
+    <button data-sleep="60">၁ နာရီ</button>
+    <button data-sleep="end">ဤတရား ဆုံးလျှင်</button>
+    <button data-sleep="off" class="muted">ပိတ်ရန်</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

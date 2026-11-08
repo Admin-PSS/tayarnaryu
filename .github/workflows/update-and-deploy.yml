@@ -1,0 +1,61 @@
+# Weekly: rebuild the talk list from dhammadownload.com, commit it if it changed,
+# and publish the app/ folder to GitHub Pages. Also runs on every push to main.
+name: Update catalog & deploy
+
+on:
+  schedule:
+    - cron: "0 20 * * 6"   # every Saturday 20:00 UTC (Sunday 02:30 Myanmar time)
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild catalog
+        if: github.event_name != 'push'
+        run: python tools/build_catalog.py
+
+      - name: Commit catalog if changed
+        if: github.event_name != 'push'
+        run: |
+          if git diff --quiet -- app/catalog.json tools/first_seen.json; then
+            echo "No new talks."
+          else
+            git config user.name "catalog-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add app/catalog.json tools/first_seen.json
+            git commit -m "Update talk catalog"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
