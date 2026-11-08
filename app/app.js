@@ -345,6 +345,50 @@ async function viewGroup(tid, gi) {
     <button class="btn" data-act="playall">▶ အားလုံးဖွင့်ရန် (${mm(ids.length)} ပုဒ်)</button></div>` + talkList(ids);
 }
 
+/* a single talk, opened from a shared link: #/t/<teacher>/<talk> */
+async function viewTalk(tid, id) {
+  const t = teachers.get(tid);
+  if (!t) return viewNotFound();
+  setHeader(t.name, "#/s/" + tid); setTab("sayadaws");
+  await loadTeacher(tid);
+  const e = byId.get(id);
+  if (!e || e.s.id !== tid) return viewNotFound();
+  const { it, g, gi } = e;
+  const ids = g?.items || [id];
+  currentList = ids;
+  const p = pos[id];
+  const resume = p && !p.done && p.t > 5;
+  return `<div class="card talk-hero">
+      <h2>${esc(it.t)}</h2>
+      <p class="muted">${esc(t.name)}</p>
+      ${g ? `<p class="muted small"><a href="#/g/${esc(tid)}/${gi}">📁 ${esc(g.t)}</a></p>` : ""}
+      ${it.n ? `<p class="small">${esc(it.n)}</p>` : ""}
+      ${it.date ? `<p class="muted small">${fmtDate(it.date)}</p>` : ""}
+      <div class="talk-actions">
+        <button class="btn" data-act="resume" data-id="${id}">▶ ${resume ? "ဆက်နာရန် (" + fmt(p.t) + ")" : "နာယူရန်"}</button>
+        <button class="btn ghost" data-act="share" data-id="${id}">🔗 မျှဝေရန်</button>
+      </div>
+    </div>
+    ${ids.length > 1 ? `<div class="section"><h2>ဤ အစုထဲမှ တရားများ (${mm(ids.length)} ပုဒ်)</h2></div>` + talkList(ids) : ""}`;
+}
+
+/* share a talk: phone share menu (Viber, Messenger, Telegram…) or copy the link */
+function talkLink(id) {
+  const e = byId.get(id);
+  return location.origin + location.pathname + "#/t/" + encodeURIComponent(e.s.id) + "/" + id;
+}
+async function shareTalk(id) {
+  const e = byId.get(id); if (!e) return;
+  const url = talkLink(id);
+  const text = `${e.it.t} — ${e.s.name}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: e.it.t, text, url }); return; }
+    catch (err) { if (err.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(text + "\n" + url); toast("🔗 လင့်ခ် ကူးယူပြီးပါပြီ။ Viber/Messenger တွင် ကူးထည့်နိုင်ပါသည်"); }
+  catch { prompt("ဤလင့်ခ်ကို ကူးယူပါ", url); }
+}
+
 function viewNew() {
   setHeader("အသစ်ထည့်ထားသော တရားများ", "#/"); setTab("home");
   return talkList((CAT.new || []).map(n => n.id).filter(id => byId.has(id)), true);
@@ -435,6 +479,10 @@ async function route() {
     else if (a === "search") html = viewSearch();
     else if (a === "library") html = viewLibrary(b);
     else if (a === "new") html = viewNew();
+    else if (a === "t") {
+      $("#view").innerHTML = spinner();
+      html = await viewTalk(b, c);
+    }
     else if (a === "about") html = viewAbout();
     else html = viewNotFound();
   } catch {
@@ -709,7 +757,7 @@ document.addEventListener("click", ev => {
     }
     case "qplay": player.load(player.queue.indexOf(id), true); renderQueue(); break;
     case "resume": {
-      const e = byId.get(id);
+      const e = byId.get(id); if (!e) break;
       if (player.currentId() === id) { player.play(); openPlayer(); break; }
       loadTeacher(e.s.id).then(t => {
         const ids = t.groups[e.gi]?.items || [id];
@@ -724,6 +772,7 @@ document.addEventListener("click", ev => {
       break;
     }
     case "fav": toggleFav(id); refreshRows(); renderPlayerInfo(); break;
+    case "share": shareTalk(id); break;
     case "libtab": location.hash = el.dataset.tab === "about" ? "#/about" : "#/library/" + el.dataset.tab; break;
     case "section": teacherFilter = ""; location.hash = "#/sayadaws/" + el.dataset.sec; break;
     case "sort":
@@ -767,6 +816,7 @@ $("#pRate").onclick = () => {
 $("#pSleep").onclick = () => ($("#sleepSheet").hidden = false);
 $("#sleepSheet").onclick = ev => { if (ev.target.id === "sleepSheet") ev.target.hidden = true; };
 $("#pFav").onclick = () => { const id = player.currentId(); if (id) { toggleFav(id); renderPlayerInfo(); refreshRows(); } };
+$("#pShare").onclick = () => { const id = player.currentId(); if (id) shareTalk(id); };
 $("#pQueueBtn").onclick = () => { const q = $("#pQueue"); q.hidden = !q.hidden; renderQueue(); };
 const seekEl = $("#pSeek");
 seekEl.addEventListener("input", () => {
