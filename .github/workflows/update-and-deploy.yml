@@ -35,12 +35,11 @@ jobs:
       - name: Commit catalog if changed
         if: github.event_name != 'push'
         run: |
-          if git diff --quiet -- app/catalog.json tools/first_seen.json; then
+          if git add -A app/data tools/first_seen.json && git diff --cached --quiet; then
             echo "No new talks."
           else
             git config user.name "catalog-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add app/catalog.json tools/first_seen.json
             git commit -m "Update talk catalog"
             git push
           fi
