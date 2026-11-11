@@ -18,6 +18,12 @@ const fmt = s => {
 };
 const fmtDate = d => d ? mm(d.split("-").reverse().join("-")) : "";
 
+/* Android app (Capacitor, see mobile/): the web files are bundled in the APK.
+   Native = BackgroundAudio plugin (mobile/android/.../BackgroundAudioPlugin.java); undefined on the website. */
+const IN_APP = !!window.Capacitor?.isNativePlatform?.();
+const Native = IN_APP ? window.Capacitor.Plugins?.BackgroundAudio : null;
+const SITE = "https://dhamma-mp3.pyisoe.com/";   // live website: share links + fresh talk lists
+
 const store = {
   get(k, def) { try { const v = localStorage.getItem("tny." + k); return v == null ? def : JSON.parse(v); } catch { return def; } },
   set(k, v) { try { localStorage.setItem("tny." + k, JSON.stringify(v)); } catch { /* private mode / full */ } },
@@ -46,11 +52,16 @@ const RATES = [0.75, 1, 1.25, 1.5, 1.75, 2];
 const savePos = () => store.set("pos", pos);
 const saveSettings = () => store.set("settings", settings);
 
+const darkQuery = matchMedia("(prefers-color-scheme: dark)");
 function applyTheme() {
   if (settings.theme === "auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.dataset.theme = settings.theme;
+  // Android app: status/navigation bar strips in the same colour as the page
+  const dark = settings.theme === "dark" || (settings.theme === "auto" && darkQuery.matches);
+  Native?.setBars({ color: dark ? "#16120e" : "#f6f0e6", dark }).catch(() => {});
 }
 applyTheme();
+darkQuery.addEventListener?.("change", applyTheme);
 
 /* Myanmar search normalisation: ignore spaces/punctuation, common spelling variants */
 const norm = s => String(s).toLowerCase().normalize("NFC")
@@ -58,10 +69,19 @@ const norm = s => String(s).toLowerCase().normalize("NFC")
   .replace(/သြ/g, "ဩ").replace(/၀/g, "ဝ").replace(/၇/g, "ရ");
 
 /* ---------- data ---------- */
-async function getJSON(url) {
-  const r = await fetch(url, { cache: "no-cache" });
+async function fetchJSON(url, opts = {}) {
+  const r = await fetch(url, { cache: "no-cache", ...opts });
   if (!r.ok) throw new Error(url + " " + r.status);
   return r.json();
+}
+async function getJSON(url) {
+  // In the app, the bundled lists only change with a new APK; the website is re-scraped every
+  // week, so try it first and fall back to the bundled copy when offline or slow.
+  if (IN_APP) {
+    try { return await fetchJSON(SITE + url, AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {}); }
+    catch { /* offline → bundled copy */ }
+  }
+  return fetchJSON(url);
 }
 
 function register(it, tid, gi) {
@@ -152,7 +172,7 @@ function talkRow(id, showSayadaw = false) {
   if (showSayadaw) info.push(esc(cut(s.name, 40)) + " · " + esc(cut(g?.t || "", 40)));
   else if (it.date && !it.t.includes(mm(it.date.slice(0, 4)))) info.push(fmtDate(it.date));
   const pp = pos[id];
-  if (pp && !pp.done && pp.t > 5) info.push("⏵ " + fmt(pp.t) + (pp.d ? " / " + fmt(pp.d) : ""));
+  if (pp && !pp.done && pp.t > 5) info.push("▶ " + fmt(pp.t) + (pp.d ? " / " + fmt(pp.d) : ""));
   const playing = player.currentId() === id;
   const fav = favs.includes(id);
   return `<li class="row${playing ? " playing" : ""}${p?.done ? " done" : ""}" data-row="${id}"${showSayadaw ? ' data-wide="1"' : ""}>
@@ -375,12 +395,17 @@ async function viewTalk(tid, id) {
 /* share a talk: phone share menu (Viber, Messenger, Telegram…) or copy the link */
 function talkLink(id) {
   const e = byId.get(id);
-  return location.origin + location.pathname + "#/t/" + encodeURIComponent(e.s.id) + "/" + id;
+  const base = IN_APP ? SITE : location.origin + location.pathname;   // in the app: https://localhost/…
+  return base + "#/t/" + encodeURIComponent(e.s.id) + "/" + id;
 }
 async function shareTalk(id) {
   const e = byId.get(id); if (!e) return;
   const url = talkLink(id);
   const text = `${e.it.t} — ${e.s.name}`;
+  if (Native) {
+    try { await Native.share({ title: e.it.t, text: text + "\n" + url }); return; }
+    catch { /* fall through to copy */ }
+  }
   if (navigator.share) {
     try { await navigator.share({ title: e.it.t, text, url }); return; }
     catch (err) { if (err.name === "AbortError") return; }
@@ -733,6 +758,43 @@ if ("mediaSession" in navigator) {
   set("seekto", d => { audio.currentTime = d.seekTime; });
 }
 
+/* ---------- Android app: background playback + notification, Back button ----------
+   The audio plays in the WebView; the native PlaybackService keeps the app alive with the
+   screen off and shows the lock-screen / notification controls. */
+let bgStopped = false;
+function bgUpdate(playing) {
+  const e = player.cur();
+  if (!Native || !e) return;
+  if (playing) bgStopped = false;
+  else if (bgStopped) return;            // closed with ✕ — don't bring the notification back on "pause"
+  Native.update({ title: e.it.t, artist: e.s.name, playing, artUrl: SITE + "icons/icon-512.png" }).catch(() => {});
+}
+if (Native) {
+  audio.addEventListener("playing", () => bgUpdate(true));
+  audio.addEventListener("pause", () => bgUpdate(false));
+  Native.addListener("control", ({ action }) => {
+    if (action === "play") player.play();
+    if (action === "pause") audio.pause();
+    if (action === "next") player.next();
+    if (action === "prev") player.prev();
+    if (action === "stop") { bgStopped = true; audio.pause(); Native.stop(); }
+  });
+}
+const CapApp = IN_APP ? window.Capacitor.Plugins?.App : null;
+if (CapApp) {
+  document.body.classList.add("in-app");
+  // Back: close sheet/player, else previous page; on the home page go to the background
+  // (instead of closing the app) so a talk keeps playing.
+  CapApp.addListener("backButton", () => {
+    if (!$("#sleepSheet").hidden) { $("#sleepSheet").hidden = true; return; }
+    if (!$("#player").hidden) { closePlayer(false); return; }
+    const h = location.hash;
+    if (!h || h === "#/" || h === "#") CapApp.minimizeApp();
+    else if (history.length > 1) history.back();
+    else location.hash = "#/";
+  });
+}
+
 /* ---------- events ---------- */
 function toggleFav(id) {
   favs = favs.includes(id) ? favs.filter(x => x !== id) : [id, ...favs];
@@ -817,6 +879,16 @@ $("#pSleep").onclick = () => ($("#sleepSheet").hidden = false);
 $("#sleepSheet").onclick = ev => { if (ev.target.id === "sleepSheet") ev.target.hidden = true; };
 $("#pFav").onclick = () => { const id = player.currentId(); if (id) { toggleFav(id); renderPlayerInfo(); refreshRows(); } };
 $("#pShare").onclick = () => { const id = player.currentId(); if (id) shareTalk(id); };
+// ⬇ in the app: a WebView can't follow <a download>, so Android's download manager saves it
+$("#dlLink").addEventListener("click", ev => {
+  const e = player.cur();
+  if (!Native || !e) return;
+  ev.preventDefault();
+  const url = audioUrl(e.it);
+  Native.download({ url, title: e.it.t, filename: decodeURIComponent(url.split("/").pop()) })
+    .then(() => toast("⬇ ဒေါင်းလုဒ် စတင်ပါပြီ – Download/Dhamma ဖိုဒါတွင် သိမ်းပါမည်", 3500))
+    .catch(() => window.open(url, "_system"));
+});
 $("#pQueueBtn").onclick = () => { const q = $("#pQueue"); q.hidden = !q.hidden; renderQueue(); };
 const seekEl = $("#pSeek");
 seekEl.addEventListener("input", () => {
@@ -848,7 +920,8 @@ document.addEventListener("keydown", e => {
   migrateV1();
   player.restore();
   route();
-  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  // no service worker in the app: files are already on the phone, and it could serve stale ones
+  if (!IN_APP && "serviceWorker" in navigator && location.protocol !== "file:") {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
 })();
