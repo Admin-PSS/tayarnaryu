@@ -23,6 +23,7 @@ const fmtDate = d => d ? mm(d.split("-").reverse().join("-")) : "";
 const IN_APP = !!window.Capacitor?.isNativePlatform?.();
 const Native = IN_APP ? window.Capacitor.Plugins?.BackgroundAudio : null;
 const SITE = "https://dhamma-mp3.pyisoe.com/";   // live website: share links + fresh talk lists
+const CONTACT = "pyisoester@gmail.com";           // developer contact (About page, privacy policy, Play Console)
 
 const store = {
   get(k, def) { try { const v = localStorage.getItem("tny." + k); return v == null ? def : JSON.parse(v); } catch { return def; } },
@@ -301,6 +302,13 @@ function viewAbout() {
       <p class="small muted">ဓမ္မဒေါင်းလုပ်၏ ကိုယ်ပိုင် App –
         <a href="https://play.google.com/store/apps/details?id=com.dhammadownload.dhammadownloadandroid" target="_blank" rel="noopener">Android</a> ·
         <a href="https://itunes.apple.com/us/app/dhamma-download/id1148319071" target="_blank" rel="noopener">iPhone</a></p>
+    </div>
+
+    <div class="card about-card">
+      <h3>✉ ဆက်သွယ်ရန် / အကြံပြုရန်</h3>
+      <p>App နှင့် ပတ်သက်၍ အမှားတွေ့ရှိပါက သို့မဟုတ် အကြံပြုလိုပါက အီးမေးလ်ဖြင့် ဆက်သွယ်နိုင်ပါသည်။</p>
+      <p><a class="btn" href="mailto:${CONTACT}?subject=${encodeURIComponent("တရားနာယူ App")}">${CONTACT}</a></p>
+      <p class="small"><a href="${IN_APP ? SITE : ""}privacy.html" target="_blank" rel="noopener">🔒 ကိုယ်ရေးအချက်အလက် မူဝါဒ (Privacy Policy) ›</a></p>
     </div>
 
     <p class="credit">ဤ App သည် ဓမ္မဒေါင်းလုပ်၏ တရားဝင် App မဟုတ်ပါ။ ဓမ္မဒေါင်းလုပ်၏ ခွင့်ပြုချက်ဖြင့်
