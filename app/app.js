@@ -18,9 +18,11 @@ const fmt = s => {
 };
 const fmtDate = d => d ? mm(d.split("-").reverse().join("-")) : "";
 
-/* Android app (Capacitor, see mobile/): the web files are bundled in the APK.
-   Native = BackgroundAudio plugin (mobile/android/.../BackgroundAudioPlugin.java); undefined on the website. */
+/* Android / iOS app (Capacitor, see mobile/): the web files are bundled in the app.
+   Native = BackgroundAudio plugin (mobile/android/.../BackgroundAudioPlugin.java,
+   mobile/ios/App/App/BackgroundAudioPlugin.swift); undefined on the website. */
 const IN_APP = !!window.Capacitor?.isNativePlatform?.();
+const IOS = IN_APP && window.Capacitor.getPlatform?.() === "ios";
 const Native = IN_APP ? window.Capacitor.Plugins?.BackgroundAudio : null;
 const SITE = "https://dhamma-mp3.pyisoe.com/";   // live website: share links + fresh talk lists
 const CONTACT = "pyisoester@gmail.com";           // developer contact (About page, privacy policy, Play Console)
@@ -57,9 +59,9 @@ const darkQuery = matchMedia("(prefers-color-scheme: dark)");
 function applyTheme() {
   if (settings.theme === "auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.dataset.theme = settings.theme;
-  // Android app: status/navigation bar strips in the same colour as the page
+  // app: status/navigation bar strips in the same colour as the page (iOS also follows "theme")
   const dark = settings.theme === "dark" || (settings.theme === "auto" && darkQuery.matches);
-  Native?.setBars({ color: dark ? "#16120e" : "#f6f0e6", dark }).catch(() => {});
+  Native?.setBars({ color: dark ? "#16120e" : "#f6f0e6", dark, theme: settings.theme }).catch(() => {});
 }
 applyTheme();
 darkQuery.addEventListener?.("change", applyTheme);
@@ -482,8 +484,8 @@ function viewLibrary(tab = "favs") {
     h += `<div class="card" style="padding:14px">
       <p style="margin:0 0 6px"><b>အရောင်</b></p>
       <div class="seg">${th.map(([k, l]) => `<button data-act="theme" data-theme="${k}" class="${settings.theme === k ? "on" : ""}">${l}</button>`).join("")}</div>
-      <p style="margin:12px 0 6px"><b>Home Screen သို့ ထည့်ရန်</b></p>
-      <p class="small muted" style="margin:0">Android Chrome – ⋮ menu › “Add to Home screen”<br>iPhone Safari – Share › “Add to Home Screen”</p>
+      ${IN_APP ? "" : `<p style="margin:12px 0 6px"><b>Home Screen သို့ ထည့်ရန်</b></p>
+      <p class="small muted" style="margin:0">Android Chrome – ⋮ menu › “Add to Home screen”<br>iPhone Safari – Share › “Add to Home Screen”</p>`}
       <p style="margin:12px 0 6px"><b>ဒေါင်းလုဒ်</b></p>
       <p class="small muted" style="margin:0">Player ထဲရှိ ⬇ ကိုနှိပ်ပါက MP3 ဖိုင်ကို ဖုန်းထဲသို့ သိမ်းနိုင်ပါသည်။ (အင်တာနက်မရှိချိန် ဖုန်း၏ Music app ဖြင့် နာနိုင်ပါသည်)</p>
     </div>` + credit();
@@ -887,13 +889,25 @@ $("#pSleep").onclick = () => ($("#sleepSheet").hidden = false);
 $("#sleepSheet").onclick = ev => { if (ev.target.id === "sleepSheet") ev.target.hidden = true; };
 $("#pFav").onclick = () => { const id = player.currentId(); if (id) { toggleFav(id); renderPlayerInfo(); refreshRows(); } };
 $("#pShare").onclick = () => { const id = player.currentId(); if (id) shareTalk(id); };
-// ⬇ in the app: a WebView can't follow <a download>, so Android's download manager saves it
+// ⬇ in the app: a WebView can't follow <a download>, so Android's download manager saves it;
+// on iOS the plugin downloads it, then the share sheet offers "Save to Files"
+let dlBusy = false;
 $("#dlLink").addEventListener("click", ev => {
   const e = player.cur();
   if (!Native || !e) return;
   ev.preventDefault();
+  if (dlBusy) { toast("⬇ ဒေါင်းလုဒ် လုပ်နေဆဲ ဖြစ်ပါသည်…"); return; }
   const url = audioUrl(e.it);
-  Native.download({ url, title: e.it.t, filename: decodeURIComponent(url.split("/").pop()) })
+  const filename = decodeURIComponent(url.split("/").pop());
+  if (IOS) {
+    dlBusy = true;
+    toast("⬇ ဒေါင်းလုဒ် လုပ်နေပါသည်… ပြီးလျှင် “Save to Files” ဖြင့် သိမ်းပါ", 6000);
+    Native.download({ url, title: e.it.t, filename })
+      .catch(() => toast("⚠ ဒေါင်းလုဒ် မအောင်မြင်ပါ။ အင်တာနက်ကို စစ်ပြီး ထပ်ကြိုးစားပါ", 4000))
+      .finally(() => (dlBusy = false));
+    return;
+  }
+  Native.download({ url, title: e.it.t, filename })
     .then(() => toast("⬇ ဒေါင်းလုဒ် စတင်ပါပြီ – Download/Dhamma ဖိုဒါတွင် သိမ်းပါမည်", 3500))
     .catch(() => window.open(url, "_system"));
 });
