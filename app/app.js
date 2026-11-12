@@ -224,7 +224,7 @@ function viewHome() {
     const p = pos[cont];
     h += `<div class="section"><h2>▶ ဆက်နာရန်</h2></div>
       <div class="card"><button class="continue" data-act="resume" data-id="${cont}">
-        <span class="play-btn">▶</span>
+        <span class="play-btn">▶︎</span>
         <span class="txt"><span class="row-title">${esc(it.t)}</span>
         <span class="row-meta">${esc(cut(s.name, 40))} · ${fmt(p.t)}${p.d ? " / " + fmt(p.d) : ""}</span>
         ${p.d ? `<span class="bar"><i style="width:${(p.t / p.d * 100).toFixed(1)}%"></i></span>` : ""}</span>
@@ -673,7 +673,7 @@ function renderPlayerInfo() {
 
 function renderPlayState() {
   const playing = !audio.paused;
-  $("#pPlay").textContent = $("#miniPlay").textContent = playing ? "⏸" : "▶";
+  $("#pPlay").textContent = $("#miniPlay").textContent = playing ? "⏸︎" : "▶︎";   // U+FE0E after the symbol: plain text glyph, not the iOS emoji
   if ("mediaSession" in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
 }
 
