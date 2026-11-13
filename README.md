@@ -5,6 +5,9 @@ A free web app (PWA) for listening online to Dhamma talks from
 dhammadownload.com, which publicly permits linking to its MP3 files
 ("ကြိုတင်ခွင့်ပြုချက်" notice on its main page). Nothing is re-hosted.
 
+- Website: https://dhamma-mp3.pyisoe.com/
+- iPhone / iPad: [App Store](https://apps.apple.com/app/id6833746953)
+
 ## Layout
 
 | Path | What |

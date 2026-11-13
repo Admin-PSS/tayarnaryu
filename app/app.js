@@ -26,6 +26,7 @@ const IOS = IN_APP && window.Capacitor.getPlatform?.() === "ios";
 const Native = IN_APP ? window.Capacitor.Plugins?.BackgroundAudio : null;
 const SITE = "https://dhamma-mp3.pyisoe.com/";   // live website: share links + fresh talk lists
 const CONTACT = "pyisoester@gmail.com";           // developer contact (About page, privacy policy, Play Console)
+const APP_STORE = "https://apps.apple.com/app/id6833746953";   // iOS app (About page; hidden inside the iOS app)
 
 const store = {
   get(k, def) { try { const v = localStorage.getItem("tny." + k); return v == null ? def : JSON.parse(v); } catch { return def; } },
@@ -305,6 +306,12 @@ function viewAbout() {
         <a href="https://play.google.com/store/apps/details?id=com.dhammadownload.dhammadownloadandroid" target="_blank" rel="noopener">Android</a> ·
         <a href="https://itunes.apple.com/us/app/dhamma-download/id1148319071" target="_blank" rel="noopener">iPhone</a></p>
     </div>
+
+    ${IOS ? "" : `<div class="card about-card">
+      <h3>📱 iPhone / iPad App</h3>
+      <p>iPhone နှင့် iPad တွင် “တရားနာယူ” App ကို App Store မှ အခမဲ့ ရယူနိုင်ပါသည်။</p>
+      <p><a class="btn" href="${APP_STORE}" target="_blank" rel="noopener">App Store မှ ရယူရန် ›</a></p>
+    </div>`}
 
     <div class="card about-card">
       <h3>✉ ဆက်သွယ်ရန် / အကြံပြုရန်</h3>
