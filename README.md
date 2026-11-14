@@ -6,6 +6,7 @@ dhammadownload.com, which publicly permits linking to its MP3 files
 ("ကြိုတင်ခွင့်ပြုချက်" notice on its main page). Nothing is re-hosted.
 
 - Website: https://dhamma-mp3.pyisoe.com/
+- Android: [Google Play](https://play.google.com/store/apps/details?id=com.adminpss.tayarnaryu)
 - iPhone / iPad: [App Store](https://apps.apple.com/app/id6833746953)
 
 ## Layout

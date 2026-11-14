@@ -99,6 +99,7 @@ ul.list > li:last-child { border-bottom: 0; }
   padding: 6px 16px; background: var(--accent); color: var(--on-accent); font-weight: 600; text-decoration: none;
 }
 .btn:hover { background: var(--accent-hover); }
+.store-btns { display: flex; flex-wrap: wrap; gap: 8px; }
 .btn.ghost { background: var(--surface2); color: var(--text); font-weight: 400; }
 
 .sayadaw-card { display: flex; align-items: center; gap: 12px; padding: 14px; text-decoration: none; color: var(--text); }
